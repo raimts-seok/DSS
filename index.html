@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>동파법 투자 전략 백테스터 V1.3 (Heatmap Pos Fix)</title>
+    <title>동파법 투자 전략 백테스터 V1.3 (Final Fix 3)</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Chart.js -->
@@ -32,7 +32,7 @@
 
     <!-- 버전 정보 -->
     <div class="absolute top-2 right-2 text-[10px] text-gray-400 font-mono select-none">
-        V1.3 (Heatmap Pos Fix)
+        V1.3 (Final Fix 3)
     </div>
 
     <div class="container mx-auto p-4 max-w-[1400px]">
@@ -184,16 +184,13 @@
                     <h3 class="font-bold text-lg mb-3 px-2 text-gray-700">🗓️ 연도별 성과 분석</h3>
                     <table class="min-w-full text-xs text-right border-collapse"><thead><tr class="bg-gray-100 text-gray-600 uppercase border-b"><th class="py-2 px-3 text-center">연도</th><th class="py-2 px-2 text-right">시작 자산 ($)</th><th class="py-2 px-2 text-right">종료 자산 ($)</th><th class="py-2 px-2 text-right">수익률 (%)</th><th class="py-2 px-2 text-right">MDD (%)</th><th class="py-2 px-2 text-right">실현수익 ($)</th><th class="py-2 px-2 text-right">연도별 인출액 ($)</th><th class="py-2 px-2 text-right">인출/수익 비율 (%)</th></tr></thead><tbody id="annualMetricsTableBody" class="text-gray-700 divide-y"></tbody></table>
                 </div>
-
+                
                 <!-- 차트 영역 -->
                 <div class="bg-white p-4 rounded-lg shadow mb-6 border border-gray-200" id="chartContainer"><h3 class="font-bold text-lg mb-2 px-2 text-gray-700">📈 자산 및 주가 추이</h3><div class="relative h-[400px]"><canvas id="strategyChart"></canvas></div></div>
 
-                <!-- 월별 수익률 히트맵 (위치 변경됨) -->
-                <div id="monthlyHeatmapArea" class="bg-white p-4 rounded-lg shadow mb-6 border border-gray-200">
-                    <h3 class="font-bold text-lg mb-3 px-2 text-gray-700">📅 월별 수익률 히트맵</h3>
-                    <div class="overflow-x-auto"><table class="min-w-full text-xs text-center border-collapse"><thead><tr class="bg-gray-100 text-gray-600 border-b"><th class="py-2 px-2 border-r">Year</th><th class="py-2 px-1">Jan</th><th class="py-2 px-1">Feb</th><th class="py-2 px-1">Mar</th><th class="py-2 px-1">Apr</th><th class="py-2 px-1">May</th><th class="py-2 px-1">Jun</th><th class="py-2 px-1">Jul</th><th class="py-2 px-1">Aug</th><th class="py-2 px-1">Sep</th><th class="py-2 px-1">Oct</th><th class="py-2 px-1">Nov</th><th class="py-2 px-1">Dec</th><th class="py-2 px-2 border-l font-bold">YTD</th></tr></thead><tbody id="monthlyHeatmapBody" class="text-gray-700"></tbody></table></div>
-                </div>
-
+                <!-- 월별 수익률 히트맵 (위치 이동됨) -->
+                <div id="monthlyHeatmapArea" class="bg-white p-4 rounded-lg shadow mb-6 border border-gray-200"><h3 class="font-bold text-lg mb-3 px-2 text-gray-700">📅 월별 수익률 히트맵</h3><div class="overflow-x-auto"><table class="min-w-full text-xs text-center border-collapse"><thead><tr class="bg-gray-100 text-gray-600 border-b"><th class="py-2 px-2 border-r">Year</th><th class="py-2 px-1">Jan</th><th class="py-2 px-1">Feb</th><th class="py-2 px-1">Mar</th><th class="py-2 px-1">Apr</th><th class="py-2 px-1">May</th><th class="py-2 px-1">Jun</th><th class="py-2 px-1">Jul</th><th class="py-2 px-1">Aug</th><th class="py-2 px-1">Sep</th><th class="py-2 px-1">Oct</th><th class="py-2 px-1">Nov</th><th class="py-2 px-1">Dec</th><th class="py-2 px-2 border-l font-bold">YTD</th></tr></thead><tbody id="monthlyHeatmapBody" class="text-gray-700"></tbody></table></div></div>
+                
                 <div class="bg-white p-4 rounded-lg shadow mb-6 border border-gray-200" id="rateChartContainer"><h3 class="font-bold text-lg mb-2 px-2 text-gray-700">📊 반영률 변동 추이 (Rates)</h3><div class="relative h-[300px]"><canvas id="rateChart"></canvas></div></div>
                 <div class="bg-white p-4 rounded-lg shadow overflow-x-auto" id="tableContainer">
                     <h3 class="font-bold text-lg mb-3 px-2 text-gray-700">📄 일별 상세 거래 내역 (전체)</h3>
@@ -308,6 +305,7 @@
                         <div class="bg-white p-3 rounded-lg shadow border border-gray-200"><h4 class="text-sm font-bold text-gray-700 mb-2 text-center">CAGR vs MDD (우하향일수록 좋음)</h4><div class="h-64"><canvas id="optChartCagrMdd"></canvas></div></div>
                         <div class="bg-white p-3 rounded-lg shadow border border-gray-200"><h4 class="text-sm font-bold text-gray-700 mb-2 text-center">CAGR vs Pain Index (우하향일수록 좋음)</h4><div class="h-64"><canvas id="optChartCagrPain"></canvas></div></div>
                     </div>
+
                     <div class="flex justify-between items-center mb-3"><h3 class="font-bold text-lg text-gray-700">🏆 최적화 결과 (Top 10)</h3><span id="optStatsText" class="text-xs font-medium text-gray-500 bg-gray-100 px-2 py-1 rounded"></span></div>
                     <div class="overflow-x-auto"><table class="min-w-full text-xs text-right border-collapse bg-white shadow-sm rounded-lg overflow-hidden"><thead class="bg-indigo-50 text-indigo-800 uppercase font-bold"><tr><th class="py-3 px-2 text-center">순위</th><th class="py-3 px-2">CAGR</th><th class="py-3 px-2">MDD</th><th class="py-3 px-2">Pain Index</th><th class="py-3 px-2">GPR</th><th class="py-3 px-2">Calmar</th><th class="py-3 px-2 bg-blue-50">SF 매수</th><th class="py-3 px-2 bg-blue-50">SF 매도</th><th class="py-3 px-2 bg-blue-50">SF 분할</th><th class="py-3 px-2 bg-blue-50">SF 보유</th><th class="py-3 px-2 bg-red-50">AG 매수</th><th class="py-3 px-2 bg-red-50">AG 매도</th><th class="py-3 px-2 bg-red-50">AG 분할</th><th class="py-3 px-2 bg-red-50">AG 보유</th><th class="py-3 px-2 bg-purple-50">수익반영률</th><th class="py-3 px-2 bg-purple-50">손실반영률</th><th class="py-3 px-2 text-center">적용</th></tr></thead><tbody id="optTableBody" class="divide-y divide-gray-100"></tbody></table></div>
                 </div>
@@ -879,6 +877,8 @@
             // Limit Filters
             const minCagr = parseFloat(document.getElementById('optMinCagr').value);
             const maxMdd = parseFloat(document.getElementById('optMaxMdd').value);
+            const maxPain = parseFloat(document.getElementById('optMaxPain').value) || 100;
+            const minCalmar = parseFloat(document.getElementById('optMinCalmar').value) || -999;
             
             // ... (setup params) ...
             const safeRange = (id, def) => { const el = document.getElementById(id); return el && el.value ? parseFloat(el.value) : def; };
@@ -914,11 +914,30 @@
                 }
             };
 
+            const steps = {
+                sfLoc: Math.floor((ranges.sfLoc[1] - ranges.sfLoc[0]) / 0.1) + 1,
+                sfProfit: Math.floor((ranges.sfProfit[1] - ranges.sfProfit[0]) / 0.1) + 1,
+                sfSplit: Math.floor((ranges.sfSplit[1] - ranges.sfSplit[0]) / 1) + 1,
+                sfHold: Math.floor((ranges.sfHold[1] - ranges.sfHold[0]) / 5) + 1,
+                
+                agLoc: Math.floor((ranges.agLoc[1] - ranges.agLoc[0]) / 0.1) + 1,
+                agProfit: Math.floor((ranges.agProfit[1] - ranges.agProfit[0]) / 0.1) + 1,
+                agSplit: Math.floor((ranges.agSplit[1] - ranges.agSplit[0]) / 1) + 1,
+                agHold: Math.floor((ranges.agHold[1] - ranges.agHold[0]) / 1) + 1,
+                
+                reinvest: Math.floor((ranges.reinvest[1] - ranges.reinvest[0]) / 5) + 1,
+                loss: Math.floor((ranges.loss[1] - ranges.loss[0]) / 5) + 1
+            };
+            
+            const totalCombos = steps.sfLoc * steps.sfProfit * steps.sfSplit * steps.sfHold * steps.agLoc * steps.agProfit * steps.agSplit * steps.agHold * steps.reinvest * steps.loss;
+            const formattedTotal = totalCombos.toLocaleString();
+
             progressDiv.classList.remove('hidden');
             resultArea.classList.add('hidden');
 
             setTimeout(() => {
                 let results = [];
+                let validCount = 0;
                 try {
                     for (let i = 0; i < sampleCount; i++) {
                         const currentParams = {
@@ -938,14 +957,16 @@
                         const simResult = executeSimulation(currentParams, rawPriceData, rawModeData);
                         if (simResult) {
                             const s = simResult.stats;
-                            if (s.cagr >= minCagr && Math.abs(s.mdd) <= maxMdd) {
+                            // Apply Filtering
+                            if (s.cagr >= minCagr && Math.abs(s.mdd) <= maxMdd && s.painIndex <= maxPain && s.calmar >= minCalmar) {
+                                validCount++;
                                 results.push({ params: currentParams, stats: s });
                             }
                         }
                     }
 
                     optimizationResults = results;
-                    document.getElementById('optStatsText').innerText = `테스트 완료: ${results.length}개 결과 찾음`;
+                    document.getElementById('optStatsText').innerText = `총 조합: ${formattedTotal}개 / 테스트: ${sampleCount}회 (조건만족: ${validCount}개)`;
                     sortAndDisplayOptimizationResults();
                     drawOptimizationCharts(results);
 
@@ -965,6 +986,11 @@
             progressDiv.classList.remove('hidden');
             const resultArea = document.getElementById('optResultArea');
             resultArea.classList.add('hidden');
+
+            const minCagr = parseFloat(document.getElementById('optMinCagr').value);
+            const maxMdd = parseFloat(document.getElementById('optMaxMdd').value);
+            const maxPain = parseFloat(document.getElementById('optMaxPain').value) || 100;
+            const minCalmar = parseFloat(document.getElementById('optMinCalmar').value) || -999;
             
              const safeRange = (id, def) => { const el = document.getElementById(id); return el && el.value ? parseFloat(el.value) : def; };
             const ranges = {
@@ -998,6 +1024,25 @@
                     useTaxOpt: document.getElementById('optEnableTaxOpt').checked
                 }
             };
+            
+             // Calculate Total Combinations
+            const steps = {
+                sfLoc: Math.floor((ranges.sfLoc[1] - ranges.sfLoc[0]) / 0.1) + 1,
+                sfProfit: Math.floor((ranges.sfProfit[1] - ranges.sfProfit[0]) / 0.1) + 1,
+                sfSplit: Math.floor((ranges.sfSplit[1] - ranges.sfSplit[0]) / 1) + 1,
+                sfHold: Math.floor((ranges.sfHold[1] - ranges.sfHold[0]) / 5) + 1,
+                
+                agLoc: Math.floor((ranges.agLoc[1] - ranges.agLoc[0]) / 0.1) + 1,
+                agProfit: Math.floor((ranges.agProfit[1] - ranges.agProfit[0]) / 0.1) + 1,
+                agSplit: Math.floor((ranges.agSplit[1] - ranges.agSplit[0]) / 1) + 1,
+                agHold: Math.floor((ranges.agHold[1] - ranges.agHold[0]) / 1) + 1,
+                
+                reinvest: Math.floor((ranges.reinvest[1] - ranges.reinvest[0]) / 5) + 1,
+                loss: Math.floor((ranges.loss[1] - ranges.loss[0]) / 5) + 1
+            };
+            
+            const totalCombos = steps.sfLoc * steps.sfProfit * steps.sfSplit * steps.sfHold * steps.agLoc * steps.agProfit * steps.agSplit * steps.agHold * steps.reinvest * steps.loss;
+            const formattedTotal = totalCombos.toLocaleString();
 
              setTimeout(() => {
                 let population = [];
@@ -1033,12 +1078,17 @@
                 population.forEach(ind => { if(!ind.stats) { const res = executeSimulation(ind.params, rawPriceData, rawModeData); ind.stats = res ? res.stats : null; } });
                 
                 const validResults = population.filter(ind => ind.stats).map(ind => ind); 
-                const minCagr = parseFloat(document.getElementById('optMinCagr').value);
-                const maxMdd = parseFloat(document.getElementById('optMaxMdd').value);
-                const filtered = validResults.filter(r => r.stats.cagr >= minCagr && Math.abs(r.stats.mdd) <= maxMdd);
+                
+                // Apply Filters
+                const filtered = validResults.filter(r => 
+                    r.stats.cagr >= minCagr && 
+                    Math.abs(r.stats.mdd) <= maxMdd &&
+                    r.stats.painIndex <= maxPain &&
+                    r.stats.calmar >= minCalmar
+                );
 
                 optimizationResults = filtered; 
-                document.getElementById('optStatsText').innerText = `GA 완료: ${generations}세대 진화 (상위 결과 ${filtered.length}개)`;
+                document.getElementById('optStatsText').innerText = `총 조합: ${formattedTotal}개 / 테스트: ${generations * populationSize}회 (조건만족: ${filtered.length}개)`;
                 sortAndDisplayOptimizationResults();
                 drawOptimizationCharts(filtered);
                 
