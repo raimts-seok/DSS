@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>동파법 투자 전략 백테스터 V1.3 (Final Fix 3)</title>
+    <title>동파법 투자 전략 백테스터 V1.3 (Final Fix 4)</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Chart.js -->
@@ -32,7 +32,7 @@
 
     <!-- 버전 정보 -->
     <div class="absolute top-2 right-2 text-[10px] text-gray-400 font-mono select-none">
-        V1.3 (Final Fix 3)
+        V1.3 (Text Fix)
     </div>
 
     <div class="container mx-auto p-4 max-w-[1400px]">
@@ -184,7 +184,7 @@
                     <h3 class="font-bold text-lg mb-3 px-2 text-gray-700">🗓️ 연도별 성과 분석</h3>
                     <table class="min-w-full text-xs text-right border-collapse"><thead><tr class="bg-gray-100 text-gray-600 uppercase border-b"><th class="py-2 px-3 text-center">연도</th><th class="py-2 px-2 text-right">시작 자산 ($)</th><th class="py-2 px-2 text-right">종료 자산 ($)</th><th class="py-2 px-2 text-right">수익률 (%)</th><th class="py-2 px-2 text-right">MDD (%)</th><th class="py-2 px-2 text-right">실현수익 ($)</th><th class="py-2 px-2 text-right">연도별 인출액 ($)</th><th class="py-2 px-2 text-right">인출/수익 비율 (%)</th></tr></thead><tbody id="annualMetricsTableBody" class="text-gray-700 divide-y"></tbody></table>
                 </div>
-                
+
                 <!-- 차트 영역 -->
                 <div class="bg-white p-4 rounded-lg shadow mb-6 border border-gray-200" id="chartContainer"><h3 class="font-bold text-lg mb-2 px-2 text-gray-700">📈 자산 및 주가 추이</h3><div class="relative h-[400px]"><canvas id="strategyChart"></canvas></div></div>
 
@@ -932,12 +932,12 @@
             const totalCombos = steps.sfLoc * steps.sfProfit * steps.sfSplit * steps.sfHold * steps.agLoc * steps.agProfit * steps.agSplit * steps.agHold * steps.reinvest * steps.loss;
             const formattedTotal = totalCombos.toLocaleString();
 
+            progressDiv.innerText = "무작위 최적화 진행 중...";
             progressDiv.classList.remove('hidden');
             resultArea.classList.add('hidden');
 
             setTimeout(() => {
                 let results = [];
-                let validCount = 0;
                 try {
                     for (let i = 0; i < sampleCount; i++) {
                         const currentParams = {
@@ -957,16 +957,14 @@
                         const simResult = executeSimulation(currentParams, rawPriceData, rawModeData);
                         if (simResult) {
                             const s = simResult.stats;
-                            // Apply Filtering
                             if (s.cagr >= minCagr && Math.abs(s.mdd) <= maxMdd && s.painIndex <= maxPain && s.calmar >= minCalmar) {
-                                validCount++;
                                 results.push({ params: currentParams, stats: s });
                             }
                         }
                     }
 
                     optimizationResults = results;
-                    document.getElementById('optStatsText').innerText = `총 조합: ${formattedTotal}개 / 테스트: ${sampleCount}회 (조건만족: ${validCount}개)`;
+                    document.getElementById('optStatsText').innerText = `총 조합: ${formattedTotal}개 / 테스트: ${sampleCount}회 (조건만족: ${results.length}개)`;
                     sortAndDisplayOptimizationResults();
                     drawOptimizationCharts(results);
 
@@ -983,6 +981,7 @@
             const populationSize = 50; 
             const generations = 20;   
             const progressDiv = document.getElementById('optProgress');
+            progressDiv.innerText = "진화 알고리즘 초기화 중...";
             progressDiv.classList.remove('hidden');
             const resultArea = document.getElementById('optResultArea');
             resultArea.classList.add('hidden');
@@ -1025,7 +1024,7 @@
                 }
             };
             
-             // Calculate Total Combinations
+             // Calculate Total Combinations (GA also explores this space)
             const steps = {
                 sfLoc: Math.floor((ranges.sfLoc[1] - ranges.sfLoc[0]) / 0.1) + 1,
                 sfProfit: Math.floor((ranges.sfProfit[1] - ranges.sfProfit[0]) / 0.1) + 1,
@@ -1043,6 +1042,7 @@
             
             const totalCombos = steps.sfLoc * steps.sfProfit * steps.sfSplit * steps.sfHold * steps.agLoc * steps.agProfit * steps.agSplit * steps.agHold * steps.reinvest * steps.loss;
             const formattedTotal = totalCombos.toLocaleString();
+
 
              setTimeout(() => {
                 let population = [];
@@ -1078,8 +1078,6 @@
                 population.forEach(ind => { if(!ind.stats) { const res = executeSimulation(ind.params, rawPriceData, rawModeData); ind.stats = res ? res.stats : null; } });
                 
                 const validResults = population.filter(ind => ind.stats).map(ind => ind); 
-                
-                // Apply Filters
                 const filtered = validResults.filter(r => 
                     r.stats.cagr >= minCagr && 
                     Math.abs(r.stats.mdd) <= maxMdd &&
