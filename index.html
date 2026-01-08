@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>동파법 투자 전략 백테스터 V1.3 (Final Fix 4)</title>
+    <title>동파법 투자 전략 백테스터 V1.5 (Final Integrated)</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Chart.js -->
@@ -32,7 +32,7 @@
 
     <!-- 버전 정보 -->
     <div class="absolute top-2 right-2 text-[10px] text-gray-400 font-mono select-none">
-        V1.3 (Text Fix)
+        V1.5 (Final Integrated)
     </div>
 
     <div class="container mx-auto p-4 max-w-[1400px]">
@@ -166,7 +166,6 @@
 
             <!-- 결과 영역 -->
             <div id="resultArea" class="hidden animate-fade-in">
-                <!-- 요약 지표 -->
                 <div class="grid grid-cols-2 md:grid-cols-5 lg:grid-cols-9 gap-4 mb-6">
                     <div class="bg-white p-3 rounded shadow text-center border-t-4 border-indigo-500"><p class="text-xs text-gray-500 font-bold uppercase">최종 자산</p><p id="resFinalValue" class="text-lg font-extrabold text-indigo-700 mt-2">-</p></div>
                     <div class="bg-white p-3 rounded shadow text-center border-t-4 border-gray-400"><p class="text-xs text-gray-500 font-bold uppercase">누적 수익률</p><p id="resTotalReturn" class="text-lg font-extrabold mt-2">-</p></div>
@@ -188,7 +187,7 @@
                 <!-- 차트 영역 -->
                 <div class="bg-white p-4 rounded-lg shadow mb-6 border border-gray-200" id="chartContainer"><h3 class="font-bold text-lg mb-2 px-2 text-gray-700">📈 자산 및 주가 추이</h3><div class="relative h-[400px]"><canvas id="strategyChart"></canvas></div></div>
 
-                <!-- 월별 수익률 히트맵 (위치 이동됨) -->
+                <!-- 월별 수익률 히트맵 -->
                 <div id="monthlyHeatmapArea" class="bg-white p-4 rounded-lg shadow mb-6 border border-gray-200"><h3 class="font-bold text-lg mb-3 px-2 text-gray-700">📅 월별 수익률 히트맵</h3><div class="overflow-x-auto"><table class="min-w-full text-xs text-center border-collapse"><thead><tr class="bg-gray-100 text-gray-600 border-b"><th class="py-2 px-2 border-r">Year</th><th class="py-2 px-1">Jan</th><th class="py-2 px-1">Feb</th><th class="py-2 px-1">Mar</th><th class="py-2 px-1">Apr</th><th class="py-2 px-1">May</th><th class="py-2 px-1">Jun</th><th class="py-2 px-1">Jul</th><th class="py-2 px-1">Aug</th><th class="py-2 px-1">Sep</th><th class="py-2 px-1">Oct</th><th class="py-2 px-1">Nov</th><th class="py-2 px-1">Dec</th><th class="py-2 px-2 border-l font-bold">YTD</th></tr></thead><tbody id="monthlyHeatmapBody" class="text-gray-700"></tbody></table></div></div>
                 
                 <div class="bg-white p-4 rounded-lg shadow mb-6 border border-gray-200" id="rateChartContainer"><h3 class="font-bold text-lg mb-2 px-2 text-gray-700">📊 반영률 변동 추이 (Rates)</h3><div class="relative h-[300px]"><canvas id="rateChart"></canvas></div></div>
@@ -651,6 +650,9 @@
             let daysSinceUpdate = 0, periodProfit = 0, cumulativeProfit = 0, cumulativeWithdrawal = 0; 
             let annualRealizedProfit = 0, annualTotalWithdrawal = 0;
             
+            // *** MISSING LINE ADDED ***
+            const lastYear = endDate.getFullYear(); 
+            
             // WinRate vars
             let tradeCount = 0, winCount = 0, totalGrossProfit = 0, totalGrossLoss = 0;
 
@@ -698,6 +700,7 @@
 
                 let buyingPower = cash;
                 let nextHoldings = [], soldToday = false;
+                let dailyRealizedProfit = 0; // Fix: daily profit tracking
 
                 for (let h of holdings) {
                     let rule = (h.mode === 'SF' || h.mode === '안전') ? sfRule : agRule;
@@ -713,7 +716,7 @@
                         let netRev = revenue - feeBroker - feeSec;
                         let profit = netRev - (h.buyPrice * h.qty) - (h.buyFee || 0); 
                         cash = roundVal(cash + netRev, precPrice); 
-                        cumulativeProfit += profit; periodProfit += profit;
+                        cumulativeProfit += profit; periodProfit += profit; dailyRealizedProfit += profit; // Add to daily
                         soldToday = true; h.sellDate = curr.date;
                         tradeCount++;
                         if(profit > 0) { winCount++; totalGrossProfit += profit; } else { totalGrossLoss += Math.abs(profit); }
@@ -722,7 +725,7 @@
                     }
                 }
                 holdings = nextHoldings;
-                if (soldToday) annualRealizedProfit += cumulativeProfit; // Simple tracking
+                if (soldToday) annualRealizedProfit += dailyRealizedProfit; // Fix: add daily profit, not cumulative
 
                 let rule = (curr.mode === 'SF' || curr.mode === '안전') ? sfRule : agRule;
                 let targetBuyPrice = floorVal(prev.close * rule.loc, precPrice);
@@ -794,6 +797,13 @@
                 if (buyExecutedQty > 0 && newPort) {
                     let r = (newPort.mode === 'SF' || newPort.mode === '안전') ? sfRule : agRule;
                     currentSellTarget = roundVal(newPort.buyPrice * r.profit, precPrice);
+                } else if (holdings.length > 0) {
+                     // Get min sell target for existing
+                     const targets = holdings.map(h => {
+                         let r = (h.mode === 'SF' || h.mode === '안전') ? sfRule : agRule;
+                         return roundVal(h.buyPrice * r.profit, precPrice);
+                     });
+                     currentSellTarget = Math.min(...targets);
                 }
 
                 let totalAsset = cash + holdings.reduce((sum, h) => sum + (h.qty * curr.close), 0);
@@ -864,6 +874,8 @@
             const result = executeSimulation(params, rawPriceData, rawModeData);
             if (result) {
                 displayResults(result, params.initialCapital);
+                const monthlyData = calculateMonthlyReturns(result.history);
+                drawMonthlyHeatmap(monthlyData);
             }
         }
         
@@ -932,12 +944,13 @@
             const totalCombos = steps.sfLoc * steps.sfProfit * steps.sfSplit * steps.sfHold * steps.agLoc * steps.agProfit * steps.agSplit * steps.agHold * steps.reinvest * steps.loss;
             const formattedTotal = totalCombos.toLocaleString();
 
-            progressDiv.innerText = "무작위 최적화 진행 중...";
             progressDiv.classList.remove('hidden');
             resultArea.classList.add('hidden');
 
             setTimeout(() => {
                 let results = [];
+                let validCount = 0;
+
                 try {
                     for (let i = 0; i < sampleCount; i++) {
                         const currentParams = {
@@ -957,14 +970,16 @@
                         const simResult = executeSimulation(currentParams, rawPriceData, rawModeData);
                         if (simResult) {
                             const s = simResult.stats;
+                            // Apply Filtering
                             if (s.cagr >= minCagr && Math.abs(s.mdd) <= maxMdd && s.painIndex <= maxPain && s.calmar >= minCalmar) {
+                                validCount++;
                                 results.push({ params: currentParams, stats: s });
                             }
                         }
                     }
 
                     optimizationResults = results;
-                    document.getElementById('optStatsText').innerText = `총 조합: ${formattedTotal}개 / 테스트: ${sampleCount}회 (조건만족: ${results.length}개)`;
+                    document.getElementById('optStatsText').innerText = `총 조합: ${formattedTotal}개 / 테스트: ${sampleCount}회 (조건만족: ${validCount}개)`;
                     sortAndDisplayOptimizationResults();
                     drawOptimizationCharts(results);
 
@@ -981,7 +996,6 @@
             const populationSize = 50; 
             const generations = 20;   
             const progressDiv = document.getElementById('optProgress');
-            progressDiv.innerText = "진화 알고리즘 초기화 중...";
             progressDiv.classList.remove('hidden');
             const resultArea = document.getElementById('optResultArea');
             resultArea.classList.add('hidden');
@@ -1078,6 +1092,8 @@
                 population.forEach(ind => { if(!ind.stats) { const res = executeSimulation(ind.params, rawPriceData, rawModeData); ind.stats = res ? res.stats : null; } });
                 
                 const validResults = population.filter(ind => ind.stats).map(ind => ind); 
+                
+                // Apply Filters
                 const filtered = validResults.filter(r => 
                     r.stats.cagr >= minCagr && 
                     Math.abs(r.stats.mdd) <= maxMdd &&
@@ -1306,12 +1322,10 @@
             document.getElementById('sfProfit').value = p.sfProfit;
             document.getElementById('sfSplit').value = p.sfSplit;
             document.getElementById('sfHold').value = p.sfHold;
-            
             document.getElementById('agLoc').value = p.agLoc;
             document.getElementById('agProfit').value = p.agProfit;
             document.getElementById('agSplit').value = p.agSplit;
             document.getElementById('agHold').value = p.agHold;
-            
             document.getElementById('reinvestRate').value = p.reinvestRate;
             document.getElementById('lossRate').value = p.lossRate;
             
@@ -1367,10 +1381,7 @@
                     </td>
                 `;
                 
-                // 이벤트 리스너 방식 사용 (클로저 문제 해결 및 참조 오류 방지)
-                const btn = tr.querySelector('.apply-btn');
-                btn.addEventListener('click', function() { applyParams(r.params); });
-                
+                tr.querySelector('.apply-btn').addEventListener('click', function() { applyParams(r.params); });
                 tbody.appendChild(tr);
             });
         }
